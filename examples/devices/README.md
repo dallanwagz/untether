@@ -9,7 +9,7 @@ Rongtai/Infinity massage chair); concise per-device profiles live here.
 
 | Device | Transport | Profile | Integration |
 |--------|-----------|---------|-------------|
-| Rongtai / Infinity "EVOLUTION" massage chair | BLE GATT (vendor svc 0xFFF0) | *the [reference walkthrough](../README.md)* | [hass-infinity-chair](https://github.com/dallanwagz/hass-infinity-chair) |
+| Rongtai / Infinity "EVOLUTION" massage chair | BLE GATT (vendor svc 0xFFF0) | [rongtai-infinity-evolution-chair.md](rongtai-infinity-evolution-chair.md) (full bit map) · also the [reference walkthrough](../README.md) | [hass-infinity-chair](https://github.com/dallanwagz/hass-infinity-chair) |
 | Atorch J7-C USB power meter | Dual: BLE GATT (svc 0xFFE0) + Classic SPP | [atorch-j7c-usb-meter.md](atorch-j7c-usb-meter.md) | atorch-ble / j7c_ha |
 | Divoom TimeBox-mini (11×11 LED) | Classic SPP, RFCOMM ch4 (byte-stuffed) | [divoom-timebox-mini.md](divoom-timebox-mini.md) | none (protocol only) |
 | Divoom Pixoo 16 (16×16 LED) | Classic SPP, RFCOMM ch2 (MiniToo transport) | [divoom-pixoo-16.md](divoom-pixoo-16.md) | none (protocol only) |
