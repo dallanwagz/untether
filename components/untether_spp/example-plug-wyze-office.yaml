@@ -11,9 +11,6 @@ esp32:
   board: esp32dev
   framework:
     type: esp-idf
-    advanced:
-      # this plug's bootloader log warned chip rev >= 3.0 — set this to shrink the binary
-      ignore_efuse_mac_crc: false
 
 logger:
 api:
