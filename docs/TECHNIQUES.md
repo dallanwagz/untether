@@ -37,7 +37,10 @@ a different world:
 - **BLE GATT (connectable)** — connect, write a command characteristic, subscribe to a notify
   characteristic. Native to HA via Bluetooth proxies/adapters.
 - **Bluetooth Classic SPP / RFCOMM** — a serial stream over an RFCOMM channel. HA *can't speak it*;
-  needs an ESP32 (WROOM-32) bridge.
+  needs a classic ESP32 (WROOM-32) bridge. This repo ships one:
+  [`components/untether_spp`](../components/untether_spp/), a hardware-verified ESPHome external
+  component that RFCOMM-connects to the device and re-exposes the byte stream as a TCP server, so
+  HA / a `nc` client gets a clean pipe.
 - **Passive BLE advertisement (broadcast)** — the device never gets connected to at all; it
   *broadcasts* its state in the advertisement's manufacturer/service data. Simplest host case.
 
@@ -98,7 +101,8 @@ catalog that went down the wrong pipe until dynamic checks caught it.
   (Telink `00010203-…`, TI `F000FF…`). Beware rotating resolvable-private addresses — connect by
   name or by a stable id embedded in the payload, not a MAC that rotates.
 - **SPP:** SDP discovery → RFCOMM channel; match the phone's plain `RfcommSocket` (ERTM off) for
-  finicky modules.
+  finicky modules. The `untether_spp` bridge handles both — pass the channel or `channel: 0` to
+  SDP-discover — and lets you validate control over `nc` before any HA code.
 - **Passive:** the advertisement *is* the channel — key on `local_name` prefix, 16-bit service UUID,
   and manufacturer company id.
 
@@ -147,9 +151,12 @@ The HA stack itself is a powerful, proxy-backed BLE instrument — no extra hard
 
 - **`protocol.py`** — pure logic (build frames + parse status + command catalog), **no HA deps**,
   **unit-tested against captured golden frames.** The durable, PR-able artifact.
-- **Coordinator** — a `DataUpdateCoordinator` (connectable) or `PassiveBluetoothProcessorCoordinator`
-  (`connectable: false`, advertisement-driven) on `entry.runtime_data`; capped-backoff reconnect + a
-  staleness watchdog.
+- **Coordinator** — a `DataUpdateCoordinator` (connectable BLE) or `PassiveBluetoothProcessorCoordinator`
+  (`connectable: false`, advertisement-driven), or — for a Classic-SPP device behind the
+  `untether_spp` bridge — a coordinator that opens an `asyncio` TCP stream to `tcp://<esp32>:port`
+  and reads the same framed bytes; all on `entry.runtime_data` with capped-backoff reconnect + a
+  staleness watchdog. The bridge is transparent, so `protocol.py` is identical regardless of
+  transport.
 - **Config flow** — Bluetooth auto-discovery (manifest matcher on `local_name`) + manual fallback;
   `unique_id` = address; abort-if-configured.
 - **Entities** — a button per command, sensors/binary-sensors per decoded field (ENUM sensors with
@@ -206,7 +213,8 @@ is a self-improving body of tradecraft — and a growing trophy wall.
 
 `apkeep` (credential-free APK pull) · `jadx` (decompile) · `adb` + `uiautomator` (drive the UI) ·
 HCI snoop / `tshark` / `logcat` (capture) · `bleak` / nRF Connect / ESP32 (enumerate + control) ·
-the HA REST + WebSocket API (capture/control via the proxy mesh) · ESPHome (proxy / SPP bridge) ·
+the HA REST + WebSocket API (capture/control via the proxy mesh) · ESPHome (BLE proxy, and the
+`untether_spp` Classic-SPP↔TCP bridge in this repo) ·
 `pytest` + `pytest-homeassistant-custom-component` / `hassfest` / `ruff` / `mypy` (Core gates) ·
 HACS (ship) · macOS Keychain / `sops`+`age` (secrets, never git).
 

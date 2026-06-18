@@ -1,7 +1,9 @@
 # Divoom Pixoo 16 (16×16 RGB LED BT display)
 
 - **Vendor app:** `com.divoom.Divoom` (Android)
-- **HA integration:** **not built** — protocol only (driven headless from a Raspberry Pi).
+- **HA integration:** no full integration yet — but this device is the **bring-up target for this
+  repo's [`untether_spp`](../../components/untether_spp/) Classic-SPP↔TCP bridge** (hardware-verified
+  here). Also driven headless from a Raspberry Pi.
 - **Contributed by:** dallanwagz · 2026-06-17
 
 > Same family as the [Divoom TimeBox-mini](divoom-timebox-mini.md). **It's a "Timebox-family"
@@ -14,7 +16,10 @@
 **Bluetooth Classic SPP / RFCOMM channel 2** *(delta: ch2, vs TimeBox=4, MiniToo=1)*. **Verified**
 via HCI capture (`btrfcomm.channel == 2`) and a live RFCOMM client. If it's a BT speaker, **A2DP
 sits on a separate BD_ADDR** (not the control MAC) — same pattern verified on the TimeBox-mini
-(`-light` control vs `-audio` audio address). Same BLE-only-HA implication → **ESP32 SPP bridge**.
+(`-light` control vs `-audio` audio address). Same BLE-only-HA implication → **ESP32 SPP bridge**,
+and this device is exactly what [`components/untether_spp`](../../components/untether_spp/) was
+brought up against: a classic ESP32 on ch2 with `on_open_hex` firing the `0xAF` handshake, verified
+controlling brightness over `nc`.
 
 ## Connection
 
@@ -89,8 +94,14 @@ connect (the token-bearing path → **contents REDACTED**, presence noted).
 
 ## Home Assistant transition
 
-No HA built. The reusable artifact is the framer (shared via the MiniToo transport) + the
-palette-frame encoder:
+No full HA integration built yet, but the **transport** is solved: this device was the bring-up
+target for [`components/untether_spp`](../../components/untether_spp/). A classic ESP32 (WROOM-32)
+flashed with the bridge — `channel: 2`, `on_open_hex: "01 04 00 af 01 b4 00 02"` (the `0xAF`
+connected-flag handshake) — connects as RFCOMM master and serves the raw stream on
+`tcp://<esp32>:8888`. Verified end-to-end: `printf '\x01\x04\x00\x74\x32\xaa\x00\x02' | nc <esp32> 8888`
+set brightness, the clock came up on connect. An HA integration would open that TCP socket and reuse
+the framer below unchanged. The reusable artifact is the framer (shared via the MiniToo transport) +
+the palette-frame encoder:
 
 ```python
 def build_frame(t, payload=b""):                    # 01 | LEN16 | TYPE | payload | CRC16 | 02
