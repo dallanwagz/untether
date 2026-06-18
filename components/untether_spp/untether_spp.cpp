@@ -114,7 +114,7 @@ void UntetherSpp::setup() {
     this->mark_failed();
     return;
   }
-  esp_bt_dev_set_device_name(this->device_name_.c_str());
+  esp_bt_gap_set_device_name(this->device_name_.c_str());  // (esp_bt_dev_set_device_name is deprecated)
   esp_bt_gap_register_callback(gap_cb);
 
   // Just-works SSP (no PIN/IO) — matches the finicky vendor modules.
