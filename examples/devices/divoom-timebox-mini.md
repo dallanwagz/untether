@@ -1,7 +1,7 @@
 # Divoom TimeBox-mini (11×11 RGB LED BT speaker/clock)
 
 - **Vendor app:** `com.divoom.Divoom` (Android; "Divoom" on iOS)
-- **HA integration:** **not built** — this profile captures the protocol only (driven headless from a Raspberry Pi, no HA).
+- **HA integration:** not built — protocol only (driven headless from a Raspberry Pi). For HA, the Classic-SPP transport is solved by this repo's [`untether_spp`](../../components/untether_spp/) bridge (`channel: 4` here); the sibling [Pixoo 16](divoom-pixoo-16.md) is the bridge's verified bring-up device.
 - **Contributed by:** dallanwagz · 2026-06-17
 
 > One of a 3-device family (TimeBox-mini, Pixoo 16, MiniToo). Shared: Bluetooth **Classic SPP**,

@@ -14,7 +14,8 @@ faithful — label guesses, document unknowns, redact secrets.
 
 Classic SPP **or** BLE GATT — and **how you confirmed it** (decompiled socket/UUID type, iOS
 device-picker showing UUIDs vs MAC, a GATT scan, bonding state, …). Note the HA host approach used
-(Bluetooth proxy / local adapter / ESP32 SPP bridge).
+(Bluetooth proxy / local adapter / the [`untether_spp`](../components/untether_spp/) ESP32 SPP↔TCP
+bridge for Classic devices).
 
 ## Connection
 

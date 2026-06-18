@@ -204,8 +204,11 @@ Signals to determine transport:
 
 Host implications:
 - **BLE** → native to HA via Bluetooth proxies (ESPHome/Shelly) or a local adapter.
-- **Classic SPP** → HA can't speak it; you need an ESP32 bridge (original ESP32 / WROOM-32 only —
-  S3/C3 are BLE-only) running an SPP component, or an RFCOMM-host integration.
+- **Classic SPP** → HA can't speak it; you bridge it with an ESP32 (original ESP32 / WROOM-32 only —
+  S3/C3 are BLE-only). This repo ships that bridge — [`components/untether_spp`](components/untether_spp/),
+  a hardware-verified ESPHome external component that connects (RFCOMM master) to the device's SPP
+  channel and exposes the raw byte stream as a **TCP server**, so HA (or any `nc`/socket client)
+  gets a clean pipe to a device HA's BLE-only stack can't reach. See Phase 5 for wiring it in.
 
 ### A third case: passive advertisement (BLE broadcast — no connection)
 
@@ -385,7 +388,9 @@ With each press driven reproducibly, record what goes out the radio, best→wors
     by *name* or bond+resolve; don't hardcode a MAC that rotates. (macOS/iOS expose a per-host
     CoreBluetooth UUID, not the MAC; **Android exposes the real MAC** — use it for HA.)
 - **SPP**: SDP discovery → RFCOMM channel; match the phone's plain `RfcommSocket` (ERTM **off**)
-  for finicky modules.
+  for finicky modules. The [`untether_spp`](components/untether_spp/) bridge does both for you —
+  give it the channel, or set `channel: 0` to SDP-discover the SPP SCN at connect — so you can find
+  the channel and validate control in one step (`nc <esp32-ip> 8888`).
 
 ## Phase 4 — Validate control + decode the status frame
 
@@ -431,15 +436,26 @@ Pick the host:
   `bleak_retry_connector.establish_connection`). No hardware by the device.
 - **BLE + no proxy near the device** → an **ESPHome BLE config** on an ESP32 next to it
   (`esp32_ble_tracker` + `ble_client`, write the command char, decode notify into sensors).
-- **Classic SPP** → an ESP32 (original ESP32/WROOM-32) running an SPP component bridging to HA.
+- **Classic SPP** → a **classic ESP32 (WROOM-32)** running this repo's
+  [`components/untether_spp`](components/untether_spp/) — the SPP↔TCP bridge. Flash it pointed at
+  the device's MAC + RFCOMM channel (or `channel: 0` to SDP-discover); it connects as RFCOMM master
+  and serves the raw byte stream on `tcp://<esp32>:8888`. Validate end-to-end with `nc` before
+  writing any HA code: `printf '<framed-hex>' | nc <esp32-ip> 8888`. Your HA integration then opens
+  that TCP socket and speaks the device's wire protocol over it — the bridge is transparent, so the
+  same `protocol.py` you'd write for BLE applies unchanged; only the transport in the coordinator
+  differs (a TCP stream instead of a GATT notify). If the device needs a connect handshake (e.g.
+  Divoom NewMode's `0xAF` connected-flag frame), set the component's **`on_open_hex`** so the bridge
+  fires it the instant SPP opens and a bare client doesn't have to.
 
 **Build it to Core standard from the start (see Objective).** The same code base ships as a HACS
 custom integration *and* is one mechanical step from a Core PR. Structure:
 - `protocol.py` — **pure** logic (build frames + parse status + the command catalog), **no HA
   deps**, **unit-tested against captured golden frames**. This is your reusable, PR-able spec.
-- `coordinator.py` — a `DataUpdateCoordinator` that owns the BLE connection, subscribes to notify,
-  pushes a decoded dataclass; **capped-backoff reconnect** + a **staleness watchdog** (tear down &
-  reconnect if the link is up but frames stop). Store it on `entry.runtime_data`.
+- `coordinator.py` — a `DataUpdateCoordinator` that owns the transport (BLE connection + notify
+  subscription, or — for a Classic-SPP device behind `untether_spp` — an `asyncio` TCP connection to
+  the bridge's `tcp://<esp32>:port`, reading the same framed stream), pushes a decoded dataclass;
+  **capped-backoff reconnect** + a **staleness watchdog** (tear down & reconnect if the link is up
+  but frames stop). Store it on `entry.runtime_data`.
 - `config_flow.py` — Bluetooth auto-discovery (manifest `bluetooth` matcher on `local_name`) +
   manual fallback; set a **unique_id** (the address) and `_abort_if_unique_id_configured()`.
 - Entities — a **button per command**, sensors/binary-sensors per decoded field (ENUM sensors
@@ -528,8 +544,9 @@ distinguish a code bug from hardware — the evidence you need before filing a f
 `jadx` (decompile) · `adb` + `uiautomator` (drive UI) · HCI snoop / `logcat` (capture) ·
 `bleak` / nRF Connect / ESP32 (enumerate + control) · HA REST + WS API (`/api/states`,
 `system_log/list`, `bluetooth/subscribe_advertisements`, `bluetooth/subscribe_connection_allocations`)
-· ESPHome (proxy / SPP bridge) · `gh` + git (ship) · `hassfest` / `ruff` / `mypy` / `pytest` (core
-gates) · HACS (install).
+· ESPHome — proxy for BLE, and [`components/untether_spp`](components/untether_spp/) (this repo's
+hardware-verified Classic-SPP↔TCP bridge) for SPP, validated with `nc <esp32-ip> 8888` · `gh` + git
+(ship) · `hassfest` / `ruff` / `mypy` / `pytest` (core gates) · HACS (install).
 
 ## Hard-won principles (the TL;DR)
 1. **Build for Home Assistant Core from the start** — the deliverable is a HACS-installable,
