@@ -1,0 +1,17 @@
+{
+  "domain": "govee_ble_re",
+  "name": "Govee BLE (RE dry-run)",
+  "bluetooth": [
+    { "local_name": "GVH5075*", "connectable": false },
+    { "local_name": "GVH5104*", "connectable": false }
+  ],
+  "codeowners": ["@dallanwagz"],
+  "config_flow": true,
+  "dependencies": ["bluetooth_adapters"],
+  "documentation": "https://github.com/dallanwagz/untether",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "quality_scale": "bronze",
+  "requirements": [],
+  "version": "0.1.0"
+}

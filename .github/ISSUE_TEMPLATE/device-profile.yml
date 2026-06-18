@@ -1,0 +1,48 @@
+name: "Device profile contribution / request"
+description: "Share (or request) a reverse-engineered device. PRs preferred — see AGENTS.md."
+title: "[device] <vendor> <model>"
+labels: ["device-profile"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Prefer opening a **pull request** with the filled `examples/_TEMPLATE.md` (see AGENTS.md).
+        Use this issue only to share findings you can't yet PR, or to request a device.
+  - type: input
+    id: device
+    attributes:
+      label: Device (vendor + model)
+      placeholder: "Govee H5075"
+    validations:
+      required: true
+  - type: dropdown
+    id: transport
+    attributes:
+      label: Transport
+      options:
+        - "BLE GATT (connectable)"
+        - "Passive BLE advertisement"
+        - "Bluetooth Classic SPP/RFCOMM"
+        - "Unknown / need to determine"
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: Vendor app (Android package id)
+      placeholder: "com.govee.home"
+  - type: textarea
+    id: findings
+    attributes:
+      label: Findings so far
+      description: "Golden frame(s), command catalog, byte map — whatever you have. Tag Verified/Inferred/Unknown. REDACT secrets."
+      render: text
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Hygiene
+      options:
+        - label: "No secrets (tokens / Wi-Fi / OAuth / account creds) in this issue"
+          required: true
+        - label: "This is a device I own or am authorized to analyze"
+          required: true

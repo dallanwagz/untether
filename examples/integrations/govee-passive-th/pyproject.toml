@@ -1,0 +1,12 @@
+[project]
+name = "govee_ble_re"
+version = "0.1.0"
+description = "Govee passive-BLE thermo-hygrometer integration (RE dry-run capstone)"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

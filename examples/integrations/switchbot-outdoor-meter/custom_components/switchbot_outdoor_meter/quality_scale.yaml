@@ -1,0 +1,36 @@
+# Integration Quality Scale — SwitchBot Outdoor Meter
+# Target: Bronze (all bronze rules done or explicitly exempt).
+rules:
+  # Bronze
+  config-flow: done
+  test-before-configure:
+    status: exempt
+    comment: >-
+      Passive broadcast device; nothing to connect to. The config flow only
+      confirms a discovered, already-decoded advertisement.
+  unique-config-entry: done
+  config-flow-test-coverage: done
+  runtime-data: done
+  test-before-setup:
+    status: exempt
+    comment: >-
+      No connection is made at setup; the passive coordinator simply starts
+      scanning. There is no reachability check to perform.
+  appropriate-polling:
+    status: exempt
+    comment: Push-based (local_push); the device broadcasts. No polling.
+  entity-unique-id: done
+  has-entity-name: done
+  entity-event-setup: done
+  dependency-transparency: done
+  action-setup:
+    status: exempt
+    comment: Integration registers no service actions.
+  common-modules: done
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  docs-actions:
+    status: exempt
+    comment: No actions.
+  brands: todo  # requires a PR to home-assistant/brands

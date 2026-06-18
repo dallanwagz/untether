@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Contribute a device profile or technique (preferred)
+    url: https://github.com/dallanwagz/untether/blob/main/AGENTS.md
+    about: The best contribution is a pull request. Read AGENTS.md / CONTRIBUTING.md and open a PR.

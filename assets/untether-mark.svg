@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  
+  <defs>
+    <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="4.5" result="b"></feGaussianBlur>
+      <feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#glow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#00E5FF" stroke-width="7">
+      <path d="M330,212 L388,190"></path><path d="M330,236 L412,236"></path><path d="M330,260 L388,282"></path>
+      <path d="M182,212 L124,190"></path><path d="M182,236 L100,236"></path><path d="M182,260 L124,282"></path>
+    </g>
+    <path d="M181.8,161.75 L330.3,310.25 L256,384.5 L256,87.5 L330.3,161.75 L181.8,310.25" stroke="#39FF14" stroke-width="28"></path>
+    <g stroke="none" fill="#00E5FF">
+      <circle cx="388" cy="190" r="8"></circle><circle cx="412" cy="236" r="8"></circle><circle cx="388" cy="282" r="8"></circle>
+      <circle cx="124" cy="190" r="8"></circle><circle cx="100" cy="236" r="8"></circle><circle cx="124" cy="282" r="8"></circle>
+    </g>
+  </g>
+  <text x="256" y="476" text-anchor="middle" font-family="&#39;JetBrains Mono&#39;,&#39;DejaVu Sans Mono&#39;,monospace" font-weight="700" font-size="28" letter-spacing="1.5" fill="#39FF14">[ 02 01 06 <tspan fill="#00E5FF">FF</tspan> 39 14 ]</text>
+</svg>

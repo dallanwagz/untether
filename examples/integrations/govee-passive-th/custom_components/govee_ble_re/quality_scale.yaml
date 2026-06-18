@@ -1,0 +1,27 @@
+# Integration Quality Scale — target: Bronze.
+# Each rule is done / todo / exempt with a short reason. (Mirrors HA Core's quality_scale.yaml.)
+rules:
+  # --- Bronze ---
+  config-flow: done
+  test-before-configure: done  # async_step_bluetooth aborts if the advert doesn't decode
+  unique-config-entry: done    # unique_id = BLE address, _abort_if_unique_id_configured
+  config-flow-test-coverage: todo  # add tests/test_config_flow.py (discovery, already-configured, not-supported)
+  runtime-data: done           # entry.runtime_data holds the coordinator
+  test-before-setup: exempt
+  appropriate-polling: exempt  # passive push (advertisement-driven), no polling
+  entity-unique-id: done       # provided by PassiveBluetoothProcessorEntity
+  has-entity-name: done
+  entity-event-setup: done
+  dependency-transparency: done
+  action-setup: exempt         # no custom services
+  common-modules: done         # protocol.py is the pure, shared module
+  docs-high-level-description: done  # README.md
+  docs-installation-instructions: done
+  docs-removal-instructions: todo
+  docs-actions: exempt
+  brands: todo                 # submit logo to home-assistant/brands before a Core PR
+  # --- Silver+ (aspirational; not required for Bronze) ---
+  test-coverage: todo
+  reauthentication-flow: exempt  # no auth
+  parallel-updates: exempt
+  entity-translations: todo

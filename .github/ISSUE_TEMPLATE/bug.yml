@@ -1,0 +1,19 @@
+name: "Correction / bug in a profile or the method"
+description: "A merged device profile or SKILL.md claim is wrong or outdated."
+title: "[fix] <what's wrong>"
+labels: ["correction"]
+body:
+  - type: input
+    id: where
+    attributes:
+      label: Where (file / section)
+      placeholder: "examples/devices/divoom-pixoo-16.md — Status frame"
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What's wrong, and the evidence for the correction
+      description: "Show the wire/golden-frame evidence. Stronger evidence beats the existing claim. A fix/ PR is even better than this issue."
+    validations:
+      required: true

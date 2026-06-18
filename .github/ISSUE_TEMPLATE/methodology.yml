@@ -1,0 +1,24 @@
+name: "Methodology improvement"
+description: "A technique, trap, or pattern SKILL.md is missing. PRs preferred — see AGENTS.md."
+title: "[method] <short description>"
+labels: ["methodology"]
+body:
+  - type: textarea
+    id: technique
+    attributes:
+      label: The technique / trap / pattern
+      description: "What did you learn that the method doesn't cover?"
+    validations:
+      required: true
+  - type: textarea
+    id: case
+    attributes:
+      label: The real case that surfaced it
+      description: "Grounded in an actual device/session, not abstract advice. Which phase does it touch?"
+    validations:
+      required: true
+  - type: input
+    id: phase
+    attributes:
+      label: SKILL.md phase it affects
+      placeholder: "Phase 4 — status decode"
