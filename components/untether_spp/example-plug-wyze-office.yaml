@@ -1,0 +1,66 @@
+# Lean ESPHome config for a Wyze outdoor plug (classic ESP32) repurposed as a
+# Classic-SPP <-> TCP bridge. BLE proxy removed + power-monitoring/LUX/web_server dropped to free
+# RAM for Classic BT. Keeps the relays (still a usable outlet) + Wi-Fi/API/OTA so rollback is just
+# re-flashing your old config.
+
+esphome:
+  name: plug-wyze-office
+  friendly_name: plug-wyze-office (SPP bridge)
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+api:
+ota:
+  - platform: esphome
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  use_address: 192.168.168.63
+
+# --- the bridge ---
+external_components:
+  - source: github://dallanwagz/untether@main
+    components: [untether_spp]
+    refresh: 0s
+
+untether_spp:
+  mac_address: AA:BB:CC:DD:EE:FF   # <-- SET to your SPP device's BD_ADDR
+  channel: 2                       # Divoom Pixoo 16 = ch2 (TimeBox-mini = ch4); 0 = SDP-discover
+  tcp_port: 8888
+  # NewMode devices (Pixoo) need a connected-flag handshake on connect; the bridge is transparent,
+  # so the TCP client sends it first:  010400af01b40002  then e.g. brightness  0104007432aa0002
+
+# --- keep the plug a usable outlet (cheap; relays restore ON) ---
+switch:
+  - platform: gpio
+    name: Relay1
+    pin: GPIO15
+    restore_mode: RESTORE_DEFAULT_ON
+    id: relay1
+  - platform: gpio
+    name: Relay2
+    pin: GPIO32
+    restore_mode: RESTORE_DEFAULT_ON
+    id: relay2
+  - platform: restart
+    name: Restart
+
+binary_sensor:
+  - platform: gpio
+    internal: true
+    pin: { number: GPIO18, mode: INPUT_PULLDOWN, inverted: true }
+    name: Button1
+    on_press: { switch.toggle: relay1 }
+  - platform: gpio
+    internal: true
+    pin: { number: GPIO17, mode: INPUT_PULLDOWN, inverted: true }
+    name: Button2
+    on_press: { switch.toggle: relay2 }
+
+# NOTE: deliberately NO bluetooth_proxy / esp32_ble_tracker here — BLE is disabled to fit Classic BT.
+# Dropped vs the old template: hlw8012 power monitoring, LUX ADC, total_daily_energy, web_server,
+# captive_portal, mdns, status_led — re-add any of these later if RAM allows.
