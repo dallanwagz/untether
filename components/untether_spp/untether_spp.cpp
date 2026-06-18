@@ -60,6 +60,8 @@ void UntetherSpp::on_spp_event(esp_spp_cb_event_t event, esp_spp_cb_param_t *par
       this->spp_open_ = true;
       this->spp_congested_ = false;
       this->backoff_ms_ = 1000;
+      this->spp_open_at_ = millis();
+      this->pending_on_open_ = !this->on_open_.empty();  // loop() fires it after a settle delay
       ESP_LOGI(TAG, "SPP OPEN (handle %u) — bridge live", (unsigned) this->spp_handle_);
       break;
     case ESP_SPP_CLOSE_EVT:
@@ -209,7 +211,18 @@ void UntetherSpp::tcp_service_() {
 
 void UntetherSpp::loop() {
   this->try_connect_spp_();
+  this->send_on_open_();
   this->tcp_service_();
+}
+
+void UntetherSpp::send_on_open_() {
+  // Fire the optional handshake once, ~300ms after SPP opens — some modules drop writes sent the
+  // instant the link comes up. Done off the BT callback thread to keep esp_spp_write on loop().
+  if (!this->pending_on_open_ || !this->spp_open_ || this->spp_congested_) return;
+  if (millis() - this->spp_open_at_ < 300) return;
+  this->pending_on_open_ = false;
+  esp_spp_write(this->spp_handle_, this->on_open_.size(), this->on_open_.data());
+  ESP_LOGI(TAG, "sent on_open handshake (%u bytes)", (unsigned) this->on_open_.size());
 }
 
 void UntetherSpp::dump_config() {

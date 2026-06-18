@@ -21,9 +21,22 @@ DEPENDENCIES = ["esp32"]
 CONF_CHANNEL = "channel"
 CONF_TCP_PORT = "tcp_port"
 CONF_DEVICE_NAME = "device_name"
+CONF_ON_OPEN_HEX = "on_open_hex"
 
 untether_spp_ns = cg.esphome_ns.namespace("untether_spp")
 UntetherSpp = untether_spp_ns.class_("UntetherSpp", cg.Component)
+
+
+def _hex_bytes(value):
+    """A hex string (spaces/colons allowed) -> list[int]. e.g. '01 04 00 af' -> [1, 4, 0, 175]."""
+    value = cv.string_strict(value)
+    cleaned = value.replace(" ", "").replace(":", "")
+    if len(cleaned) % 2 != 0:
+        raise cv.Invalid(f"{CONF_ON_OPEN_HEX} must have an even number of hex digits")
+    try:
+        return list(bytes.fromhex(cleaned))
+    except ValueError as err:
+        raise cv.Invalid(f"{CONF_ON_OPEN_HEX} is not valid hex: {err}")
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -36,6 +49,10 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_TCP_PORT, default=8888): cv.port,
         # Local BT device name advertised by this bridge.
         cv.Optional(CONF_DEVICE_NAME, default="untether-spp"): cv.string_strict,
+        # Optional handshake: bytes auto-sent to the device once, right after SPP opens. Lets the
+        # bridge fire a device's connect handshake (e.g. Divoom NewMode 0xAF) itself, so a plain
+        # `nc` client doesn't have to send it first. Hex string, e.g. "01 04 00 af 01 b4 00 02".
+        cv.Optional(CONF_ON_OPEN_HEX, default=""): _hex_bytes,
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -59,3 +76,5 @@ async def to_code(config):
     cg.add(var.set_channel(config[CONF_CHANNEL]))
     cg.add(var.set_tcp_port(config[CONF_TCP_PORT]))
     cg.add(var.set_device_name(config[CONF_DEVICE_NAME]))
+    if config[CONF_ON_OPEN_HEX]:
+        cg.add(var.set_on_open(config[CONF_ON_OPEN_HEX]))

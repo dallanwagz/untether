@@ -21,6 +21,7 @@ untether_spp:
   mac_address: AA:BB:CC:DD:EE:FF   # <-- the SPP device's BD_ADDR (e.g. your TimeBox-mini)
   channel: 4                       # RFCOMM SCN (TimeBox-mini ch4 / Pixoo ch2); 0 = SDP-discover
   tcp_port: 8888                   # bridge listens here; one client at a time
+  on_open_hex: ""                  # optional: bytes auto-sent once after SPP opens (handshake)
 ```
 
 Then from anywhere on the LAN:
@@ -30,6 +31,23 @@ Then from anywhere on the LAN:
 nc <esp32-ip> 8888
 # or in Python: socket.create_connection((esp32_ip, 8888)) and speak the device's wire protocol
 ```
+
+### `on_open_hex` — auto-handshake on connect
+
+Some devices need a connect handshake before they accept commands (Divoom NewMode panels want the
+`0xAF` connected-flag frame first). The bridge is transparent, so normally the TCP client sends that
+itself. Set `on_open_hex` to have the bridge fire it for you, once, ~300ms after the SPP link opens —
+then a bare `nc … | brightness` works without the client knowing the handshake:
+
+```yaml
+untether_spp:
+  mac_address: AA:BB:CC:DD:EE:FF
+  channel: 2
+  on_open_hex: "01 04 00 af 01 b4 00 02"   # Divoom Pixoo NewMode connect handshake
+```
+
+Spaces and colons are ignored; `"010400af01b40002"` is identical. Leave it empty (default) to send
+nothing on open.
 
 ## How it works
 
@@ -42,8 +60,8 @@ nc <esp32-ip> 8888
 
 ## Status / caveats
 
-- **v0.1, not yet compile-verified on-target** — authored against ESP-IDF 5.5 (`esp_spp_api`).
-  Expect a compile fix or two on the first ESPHome build; paste the error and iterate.
+- **Hardware-verified** — built under ESP-IDF 5.5 (`esp_spp_api`) and confirmed on a classic ESP32
+  driving a Divoom Pixoo 16 over RFCOMM ch2 (handshake + brightness over `nc`).
 - Single TCP client; binary-clean (no framing added — the device's own framing passes through).
 - One SPP link per node. For multiple SPP devices, use multiple ESP32s (or extend to multi-handle).
 - It's a transport bridge — it does **not** parse the protocol. Decode lives in your HA integration

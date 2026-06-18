@@ -7,6 +7,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/ringbuf.h"
 
+#include <string>
+#include <vector>
+
 namespace esphome {
 namespace untether_spp {
 
@@ -26,6 +29,7 @@ class UntetherSpp : public Component {
   void set_channel(uint8_t ch) { channel_ = ch; }
   void set_tcp_port(uint16_t port) { tcp_port_ = port; }
   void set_device_name(const std::string &name) { device_name_ = name; }
+  void set_on_open(const std::vector<uint8_t> &bytes) { on_open_ = bytes; }
 
   // Called from the Bluedroid GAP/SPP task callbacks (registered as static trampolines).
   void on_spp_event(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
@@ -35,6 +39,7 @@ class UntetherSpp : public Component {
   void tcp_setup_();
   void tcp_service_();
   void try_connect_spp_();
+  void send_on_open_();
 
   esp_bd_addr_t target_{};
   uint8_t channel_{0};         // 0 => SDP discover
@@ -48,6 +53,11 @@ class UntetherSpp : public Component {
   volatile bool want_reconnect_{false};
   uint32_t last_connect_attempt_{0};
   uint32_t backoff_ms_{1000};
+
+  // Optional handshake auto-sent once, shortly after SPP opens (see on_open_hex).
+  std::vector<uint8_t> on_open_;
+  volatile bool pending_on_open_{false};
+  uint32_t spp_open_at_{0};
 
   // SPP -> TCP buffer (filled in BT task, drained in loop)
   RingbufHandle_t rb_in_{nullptr};
