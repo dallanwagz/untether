@@ -13,7 +13,7 @@ exposes the raw byte stream as a **TCP server**. HA — or the untether Python t
 
 ```yaml
 external_components:
-  - source: github://dallanwagz/untether@main   # use @feat/untether-spp-bridge while iterating
+  - source: github://dallanwagz/untether@main
     components: [untether_spp]
     refresh: 0s                                  # always re-pull during development
 

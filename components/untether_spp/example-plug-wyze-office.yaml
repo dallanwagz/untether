@@ -23,7 +23,7 @@ wifi:
 
 # --- the bridge ---
 external_components:
-  - source: github://dallanwagz/untether@feat/untether-spp-bridge
+  - source: github://dallanwagz/untether@main
     components: [untether_spp]
     refresh: 0s
 
