@@ -28,9 +28,11 @@ external_components:
     refresh: 0s
 
 untether_spp:
-  mac_address: AA:BB:CC:DD:EE:FF   # <-- SET to the TimeBox-mini's BD_ADDR (light/control endpoint)
-  channel: 4                       # TimeBox-mini RFCOMM SCN; 0 = SDP-discover
+  mac_address: AA:BB:CC:DD:EE:FF   # <-- SET to your SPP device's BD_ADDR
+  channel: 2                       # Divoom Pixoo 16 = ch2 (TimeBox-mini = ch4); 0 = SDP-discover
   tcp_port: 8888
+  # NewMode devices (Pixoo) need a connected-flag handshake on connect; the bridge is transparent,
+  # so the TCP client sends it first:  010400af01b40002  then e.g. brightness  0104007432aa0002
 
 # --- keep the plug a usable outlet (cheap; relays restore ON) ---
 switch:
