@@ -17,6 +17,10 @@ static const char *const TAG = "untether_spp";
 static const size_t RB_SIZE = 4096;             // per-device SPP -> TCP staging
 static const size_t TCP_RX = 990;               // TCP -> SPP chunk (~RFCOMM MTU)
 static const uint32_t CONNECT_TIMEOUT_MS = 12000;  // abandon a stuck connect/discovery, then retry
+// Capped exponential backoff for (re)connects. Starts at 1s and doubles, so a briefly-dropped
+// device recovers fast; a long-absent/powered-off device settles to MAX so its failed pages (which
+// each tie up the shared radio for several seconds) barely disturb the other links.
+static const uint32_t MAX_BACKOFF_MS = 60000;
 
 // Bluedroid callbacks are C-style with no user pointer, so route through a singleton.
 static UntetherSpp *g_self = nullptr;
@@ -175,7 +179,7 @@ void UntetherSpp::manage_connections_() {
     d.want_reconnect = false;
     this->connecting_idx_ = (int) i;
     this->connect_started_ = now;
-    d.backoff_ms = std::min<uint32_t>(d.backoff_ms * 2, 15000);  // capped backoff
+    d.backoff_ms = std::min<uint32_t>(d.backoff_ms * 2, MAX_BACKOFF_MS);  // capped backoff
     if (d.channel > 0) {
       ESP_LOGI(TAG, "[:%u] connecting SPP ch %u …", d.tcp_port, d.channel);
       esp_spp_connect(ESP_SPP_SEC_NONE, ESP_SPP_ROLE_MASTER, d.channel, d.target);
