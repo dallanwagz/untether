@@ -128,6 +128,12 @@ CONFIG_SCHEMA = cv.All(
 
 
 async def to_code(config):
+    devices = config[CONF_DEVICES]
+    # Each bridged device holds its OWN BR/EDR ACL link. The controller defaults to only 2
+    # simultaneous BR/EDR connections, so a 3rd device otherwise fails to connect (RFCOMM
+    # PORT_StartCnf result:9). Scale the limit to the device count (the host side too).
+    acl = max(2, len(devices))
+
     # --- Classic BT + SPP, BLE off (memory) ---
     esp32.add_idf_sdkconfig_option("CONFIG_BT_ENABLED", True)
     esp32.add_idf_sdkconfig_option("CONFIG_BT_CLASSIC_ENABLED", True)
@@ -136,6 +142,8 @@ async def to_code(config):
     esp32.add_idf_sdkconfig_option("CONFIG_BTDM_CTRL_MODE_BR_EDR_ONLY", True)
     esp32.add_idf_sdkconfig_option("CONFIG_BTDM_CTRL_MODE_BLE_ONLY", False)
     esp32.add_idf_sdkconfig_option("CONFIG_BTDM_CTRL_MODE_BTDM", False)
+    esp32.add_idf_sdkconfig_option("CONFIG_BTDM_CTRL_BR_EDR_MAX_ACL_CONN", acl)
+    esp32.add_idf_sdkconfig_option("CONFIG_BT_ACL_CONNECTIONS", acl)
 
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
