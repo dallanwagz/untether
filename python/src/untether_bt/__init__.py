@@ -47,7 +47,16 @@ from .sdp import (
     spp_channel,
 )
 from .uiauto import UiNode, find_node, parse_ui_dump
-from .btsnoop import Btsnoop, BtsnoopRecord, make_record, parse_btsnoop, write_btsnoop
+from .btsnoop import (
+    Btsnoop,
+    BtsnoopRecord,
+    decompress_btsnooz,
+    is_btsnooz,
+    load_btsnoop,
+    make_record,
+    parse_btsnoop,
+    write_btsnoop,
+)
 from .capture import Capture, Correlation, Mark, Recorder, WireEvent, correlate
 from .framing import (
     DIVOOM_NEWMODE,
@@ -60,7 +69,7 @@ from .framing import (
 from .hci import AttPdu, HciPacket, L2capPayload, att_pdus, hci_packets, l2cap_payloads
 from .spp import AsyncSppBridge, SppBridge
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 __all__ = [
     "__version__",
@@ -88,6 +97,9 @@ __all__ = [
     "parse_btsnoop",
     "write_btsnoop",
     "make_record",
+    "decompress_btsnooz",
+    "is_btsnooz",
+    "load_btsnoop",
     "HciPacket",
     "L2capPayload",
     "AttPdu",

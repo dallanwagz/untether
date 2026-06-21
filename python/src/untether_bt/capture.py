@@ -14,7 +14,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 
-from .btsnoop import parse_btsnoop
+from .btsnoop import load_btsnoop
 from .hci import AttPdu, HciPacket, att_pdus, hci_packets, l2cap_payloads
 
 
@@ -52,10 +52,28 @@ class Capture:
 
     @classmethod
     def from_btsnoop(cls, data: bytes) -> Capture:
-        return cls(hci_packets(parse_btsnoop(data)))
+        """Load a capture — standard btsnoop or an Android btsnooz blob (auto-detected)."""
+        return cls(hci_packets(load_btsnoop(data)))
 
     def att(self) -> list[AttPdu]:
         return att_pdus(self.packets)
+
+    def sdp_records(self) -> list[dict]:
+        """Service records from any SDP ServiceSearchAttribute responses in the capture.
+
+        Use with ``untether_bt.sdp.spp_channel`` to recover a device's RFCOMM channel from a
+        capture alone — no live Classic stack needed.
+        """
+        from .sdp import parse_ssa_response
+
+        records: list[dict] = []
+        for lp in l2cap_payloads(self.packets):
+            if lp.payload and lp.payload[0] == 0x07:  # SDP ServiceSearchAttributeResponse PDU
+                try:
+                    records.extend(parse_ssa_response(lp.payload))
+                except (ValueError, IndexError):
+                    continue
+        return records
 
     def wire_events(self, *, include_l2cap: bool = False) -> list[WireEvent]:
         """The unified RE view: ATT PDUs (always) + raw non-ATT L2CAP (optional, e.g. RFCOMM)."""

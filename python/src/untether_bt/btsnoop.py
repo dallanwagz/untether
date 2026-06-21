@@ -140,3 +140,75 @@ def make_record(
         timestamp_us=unix_us + BTSNOOP_EPOCH_DELTA_US,
         data=data,
     )
+
+
+# --- btsnooz (Android bug-report) -------------------------------------------
+# Android bug reports embed a compressed "btsnooz" blob (NOT standard btsnoop). Format per AOSP
+# btsnooz.py: header `<bQ` (version 1|2, last_timestamp_ms), then a zlib stream of records —
+# v1 `<HIb` (length, delta_ms, type), v2 `<HHIb` (length, orig_packet_len, delta_ms, type); each
+# record's HCI payload is `length-1` bytes; timestamps are reconstructed from the trailing
+# last_timestamp by subtracting the summed deltas. We emit a standard H4 btsnoop.
+
+# snooz type -> H4 indicator
+_SNOOZ_H4 = {0x10: 0x04, 0x11: 0x02, 0x12: 0x03, 0x20: 0x01, 0x21: 0x02, 0x22: 0x03}
+_SNOOZ_IN = {0x10, 0x11, 0x12}  # IN_EVT / IN_ACL / IN_SCO -> received
+
+
+def is_btsnooz(data: bytes) -> bool:
+    return len(data) >= 9 and data[:8] != BTSNOOP_MAGIC and data[0] in (1, 2)
+
+
+def decompress_btsnooz(snooz: bytes) -> bytes:
+    """Decompress an Android btsnooz blob into a standard btsnoop file (bytes).
+
+    ``last_timestamp_ms`` is treated as Unix-epoch ms (so the resulting absolute times are correct
+    if it was; relative timing is exact regardless).
+    """
+    import zlib
+
+    if len(snooz) < 9:
+        raise ValueError("btsnooz too short")
+    version, last_ts_ms = struct.unpack_from("<bQ", snooz, 0)
+    if version not in (1, 2):
+        raise ValueError(f"unsupported btsnooz version {version}")
+    data = zlib.decompress(snooz[9:])
+
+    parsed: list[tuple[int, int, bytes, int | None]] = []  # (delta_ms, type, pkt, orig_len)
+    off, n, total_delta = 0, len(data), 0
+    while off < n:
+        if version == 1:
+            length, delta_ms, typ = struct.unpack_from("<HIb", data, off)
+            hdr, orig_len = 7, None
+        else:
+            length, orig_packet_len, delta_ms, typ = struct.unpack_from("<HHIb", data, off)
+            hdr, orig_len = 9, orig_packet_len
+        pkt = data[off + hdr : off + hdr + (length - 1)]
+        parsed.append((delta_ms, typ, pkt, orig_len))
+        total_delta += delta_ms
+        off += hdr + (length - 1)
+
+    ts_ms = last_ts_ms - total_delta
+    records: list[BtsnoopRecord] = []
+    for delta_ms, typ, pkt, orig_len in parsed:
+        ts_ms += delta_ms
+        h4 = _SNOOZ_H4.get(typ)
+        if h4 is None:
+            continue
+        h4_data = bytes((h4,)) + pkt
+        records.append(
+            BtsnoopRecord(
+                original_len=(orig_len + 1) if orig_len is not None else len(h4_data),
+                included_len=len(h4_data),
+                flags=(_FLAG_RECEIVED if typ in _SNOOZ_IN else 0)
+                | (_FLAG_CMD_EVT if h4 in (0x01, 0x04) else 0),
+                cumulative_drops=0,
+                timestamp_us=ts_ms * 1000 + BTSNOOP_EPOCH_DELTA_US,
+                data=h4_data,
+            )
+        )
+    return write_btsnoop(DLT_HCI_UART_H4, records)
+
+
+def load_btsnoop(data: bytes) -> Btsnoop:
+    """Parse a capture whether it's standard btsnoop or a btsnooz blob (auto-detected)."""
+    return parse_btsnoop(decompress_btsnooz(data) if is_btsnooz(data) else data)
