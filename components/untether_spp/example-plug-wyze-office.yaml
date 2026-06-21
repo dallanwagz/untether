@@ -24,7 +24,7 @@ wifi:
 
 # --- the bridge: up to 4 SPP devices, one TCP port each ---
 external_components:
-  - source: github://dallanwagz/untether@main
+  - source: github://dallanwagz/untether@untether_spp-v1.0.0
     components: [untether_spp]
     refresh: 0s
 
