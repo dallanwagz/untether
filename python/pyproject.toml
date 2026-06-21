@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "untether-bt"
-version = "0.1.0"
+version = "0.2.0"
 description = "A Bluetooth Swiss-army-knife for reverse engineering, troubleshooting, and engineering — with first-class Bluetooth Classic (RFCOMM/SPP) support the BLE-only ecosystem lacks."
 readme = "README.md"
 requires-python = ">=3.10"
