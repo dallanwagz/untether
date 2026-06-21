@@ -103,15 +103,30 @@ events = []
 FridaSession("com.vendor.app").run(events.append, duration=20)
 ```
 
+## Protocol primitives
+
+```python
+from untether_bt import GattClient, describe_uuid, parse_ssa_response, spp_channel
+
+describe_uuid(0x180F)                      # '0x180F (Battery Service)'
+spp_channel(parse_ssa_response(sdp_bytes)) # the dynamic RFCOMM channel — browse, don't hardcode
+
+async with GattClient("AA:BB:CC:DD:EE:FF") as g:   # wraps bleak; pip install "untether-bt[ble]"
+    print(g.services())
+    await g.subscribe(0xFFE1, print)        # CCCD handled for you
+    await g.write(0xFFE1, b"\x01")
+```
+
 ## What's here and what's next
 
-**Now:** the framing/codec engine, the SPP bridge client (sync + async), the advertisement decoder,
+**Now:** the framing/codec engine; the SPP bridge client (sync + async); the advertisement decoder;
 the full RE capture pipeline (live **ADB/UIAutomator driver** → btsnoop → HCI/L2CAP/ATT extraction →
-UI-action↔wire-byte correlation), and **static + dynamic analysis** (jadx decompile mapping + Frida
-write hooks). Proven on real hardware and uniquely ours (first-class Classic throughout).
+UI-action↔wire-byte correlation); **static + dynamic analysis** (jadx mapping + Frida write hooks);
+and the protocol primitives (**SDP** record parser, **GATT** client over bleak, **Assigned-Numbers**
+resolver). Proven on real hardware and uniquely ours (first-class Classic throughout).
 
-**Roadmap:** `btsnooz` (Android bug-report) decompression, a host-side SDP browser, a GATT client
-(wrapping `bleak`), the Assigned-Numbers resolver, and the Home-Assistant coordinator helpers.
+**Roadmap:** `btsnooz` (Android bug-report) decompression; live SDP browsing on Linux/BlueZ; the
+Home-Assistant coordinator helper (`untether-bt[ha]`); and publishing to PyPI.
 
 ## License
 
