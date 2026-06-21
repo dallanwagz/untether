@@ -46,9 +46,10 @@ on its own TCP port, over one shared radio) and re-exposes their byte streams as
 across two wire dialects (Pixoo NewMode + TimeBox byte-stuffed).
 
 And the host-side toolkit is a pip-installable Python library, **[`python/`](python/)** (`untether-bt`):
-the framing/codec engine, the SPP-bridge client (sync + async), and a BLE advertisement decoder —
-first-class Bluetooth **Classic** support the BLE-only ecosystem (bleak/HA/ESPHome) lacks. More
-primitives (btsnoop, SDP, GATT-over-bleak, the app→HA RE pipeline) on the roadmap.
+the framing/codec engine, the SPP-bridge client (sync + async), a BLE advertisement decoder, and the
+reverse-engineering pipeline (btsnoop parser → HCI/ATT extraction → UI-action↔wire-byte correlation)
+— first-class Bluetooth **Classic** support the BLE-only ecosystem (bleak/HA/ESPHome) lacks. The
+live ADB/jadx/Frida driver + SDP/GATT primitives are next on the roadmap.
 
 ## Install (as a Claude Code skill)
 

@@ -2,8 +2,9 @@
 
 First-class Bluetooth **Classic (RFCOMM/SPP)** support — reachable from any host or from Home
 Assistant via the companion ``untether_spp`` ESP32 bridge — plus the protocol primitives the
-BLE-only ecosystem leaves to you. v0.1 ships the framing/codec engine, the SPP bridge client, and
-the advertisement decoder; more primitives (btsnoop, SDP, GATT-over-bleak, the RE pipeline) follow.
+BLE-only ecosystem leaves to you. Includes: the framing/codec engine, the SPP bridge client, the
+advertisement decoder, and the reverse-engineering pipeline (btsnoop parser, HCI/ATT extraction,
+and UI-action↔wire-byte correlation). SDP/GATT-over-bleak and the ADB driver follow.
 """
 
 from __future__ import annotations
@@ -17,6 +18,8 @@ from .advertising import (
     service_data,
     service_uuids16,
 )
+from .btsnoop import Btsnoop, BtsnoopRecord, make_record, parse_btsnoop, write_btsnoop
+from .capture import Capture, Correlation, Mark, Recorder, WireEvent, correlate
 from .framing import (
     DIVOOM_NEWMODE,
     DIVOOM_STUFFED,
@@ -25,9 +28,10 @@ from .framing import (
     Stuffing,
     crc_sum16,
 )
+from .hci import AttPdu, HciPacket, L2capPayload, att_pdus, hci_packets, l2cap_payloads
 from .spp import AsyncSppBridge, SppBridge
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "__version__",
@@ -49,4 +53,22 @@ __all__ = [
     "service_uuids16",
     "local_name",
     "flags",
+    # capture / reverse-engineering
+    "Btsnoop",
+    "BtsnoopRecord",
+    "parse_btsnoop",
+    "write_btsnoop",
+    "make_record",
+    "HciPacket",
+    "L2capPayload",
+    "AttPdu",
+    "hci_packets",
+    "l2cap_payloads",
+    "att_pdus",
+    "Capture",
+    "WireEvent",
+    "Mark",
+    "Correlation",
+    "Recorder",
+    "correlate",
 ]
