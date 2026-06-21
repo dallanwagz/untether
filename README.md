@@ -46,13 +46,13 @@ on its own TCP port, over one shared radio) and re-exposes their byte streams as
 across two wire dialects (Pixoo NewMode + TimeBox byte-stuffed).
 
 And the host-side toolkit is a pip-installable Python library, **[`python/`](python/)** (`untether-bt`):
-the framing/codec engine, the SPP-bridge client (sync + async), a BLE advertisement decoder, and the
-full reverse-engineering pipeline — live **ADB/UIAutomator driver** → btsnoop parse → HCI/ATT
+the framing/codec engine, the SPP-bridge client (sync + async) plus a self-healing `SppConnection`
+that the example HA integration is built on, a BLE advertisement decoder, and the full
+reverse-engineering pipeline — live **ADB/UIAutomator driver** → btsnoop parse → HCI/ATT
 extraction → **UI-action↔wire-byte correlation**, **static (jadx) + dynamic (Frida) analysis**, and
 the protocol primitives (SDP record parser, GATT client over bleak, Assigned-Numbers resolver),
 plus Android **btsnooz** decompression and live SDP browsing on BlueZ — first-class Bluetooth
-**Classic** support the BLE-only ecosystem (bleak/HA/ESPHome) lacks. The HA-coordinator helper
-(dogfooding) + PyPI publish are next.
+**Classic** support the BLE-only ecosystem (bleak/HA/ESPHome) lacks.
 
 ## Install (as a Claude Code skill)
 

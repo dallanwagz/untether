@@ -1,0 +1,57 @@
+name: Publish untether-bt to PyPI
+
+# Trusted publishing (OIDC): no API token is stored anywhere. PyPI mints a short-lived,
+# per-run credential from GitHub's identity. Configure the publisher once on PyPI:
+#   pypi.org -> your account -> Publishing -> Add a pending publisher
+#     PyPI project name: untether-bt
+#     Owner:             dallanwagz
+#     Repository:        untether
+#     Workflow name:     publish.yml
+#     Environment:       pypi
+# After that, publishing a GitHub Release builds python/ and uploads it automatically.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:        # allow a manual run from the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install --upgrade build
+          python -m build
+      - name: Check metadata
+        run: |
+          python -m pip install --upgrade twine
+          python -m twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: python/dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi          # gate releases behind this environment if you want approvals
+    permissions:
+      id-token: write          # required for trusted publishing (OIDC)
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
