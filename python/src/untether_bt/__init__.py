@@ -68,8 +68,9 @@ from .framing import (
 )
 from .hci import AttPdu, HciPacket, L2capPayload, att_pdus, hci_packets, l2cap_payloads
 from .spp import AsyncSppBridge, SppBridge
+from .connection import SppConnection
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 __all__ = [
     "__version__",
@@ -83,6 +84,7 @@ __all__ = [
     # spp
     "SppBridge",
     "AsyncSppBridge",
+    "SppConnection",
     # advertising
     "ADStructure",
     "parse_ad",

@@ -26,7 +26,34 @@ with SppBridge("192.168.1.50", 8888, framing=DIVOOM_NEWMODE) as dev:
         print(f.type, f.args.hex())
 ```
 
-`AsyncSppBridge` is the asyncio twin (for Home Assistant coordinators). The same client also works against `socat`/`ser2net` over `/dev/rfcommN` on a BlueZ host.
+`AsyncSppBridge` is the asyncio twin (request/response). The same client also works against `socat`/`ser2net` over `/dev/rfcommN` on a BlueZ host.
+
+## A connection that stays up (for daemons & HA coordinators)
+
+A long-running host needs the opposite of request/response: one connection that heals itself. `SppConnection` is that loop — connect, run a startup handshake, read forever in the background, serialise writes, reconnect with capped backoff, and tear down when inbound bytes go quiet. Pure asyncio, no Home Assistant dependency; you bring the deframer.
+
+```python
+from untether_bt import SppConnection, DIVOOM_NEWMODE
+
+leftover = b""
+def on_chunk(chunk: bytes) -> None:
+    global leftover
+    frames, leftover = DIVOOM_NEWMODE.iter_frames(leftover + chunk)
+    for f in frames:
+        ...  # decode device state, push to your entities
+
+conn = SppConnection(
+    "192.168.1.50", 8888,
+    on_chunk=on_chunk,
+    on_connect=lambda: conn.send(DIVOOM_NEWMODE.build(0xAF, b"\x01")),  # handshake
+    on_state=lambda up: print("link", "up" if up else "down"),
+)
+await conn.start()
+await conn.send(DIVOOM_NEWMODE.build(0x74, b"\x32"))  # serialised write
+# ... later: await conn.stop()
+```
+
+This is exactly the transport the example [`hass-pixoo-spp`](https://github.com/dallanwagz/hass-pixoo-spp) coordinator runs on — the integration keeps only its device-specific logic (handshake bytes, frame parsing, the chunked animation upload) and delegates the connection lifecycle here.
 
 ## The framing/codec engine
 
@@ -120,15 +147,16 @@ async with GattClient("AA:BB:CC:DD:EE:FF") as g:   # wraps bleak; pip install "u
 
 ## What's here and what's next
 
-**Now:** the framing/codec engine; the SPP bridge client (sync + async); the advertisement decoder;
+**Now:** the framing/codec engine; the SPP bridge client (sync + async) plus the self-healing
+`SppConnection` (dogfooded by the Pixoo HA integration); the advertisement decoder;
 the full RE capture pipeline (live **ADB/UIAutomator driver** → btsnoop **+ btsnooz** → HCI/L2CAP/ATT
 extraction → UI-action↔wire-byte correlation); **static + dynamic analysis** (jadx mapping + Frida
 write hooks); the protocol primitives (**SDP** record parser — incl. recovering the RFCOMM channel
 from a capture or live via BlueZ — **GATT** client over bleak, **Assigned-Numbers** resolver). Proven
 on real hardware and uniquely ours (first-class Classic throughout).
 
-**Roadmap:** the Home-Assistant coordinator helper (`untether-bt[ha]`) + refactoring the example
-integrations to consume the library; publishing to PyPI; growing the bundled Assigned-Numbers tables.
+**Roadmap:** growing the bundled Assigned-Numbers tables; publishing the spec map as a Classic-BT RE
+handbook; contributing parsers upstream.
 
 ## License
 
