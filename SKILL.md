@@ -206,9 +206,10 @@ Host implications:
 - **BLE** → native to HA via Bluetooth proxies (ESPHome/Shelly) or a local adapter.
 - **Classic SPP** → HA can't speak it; you bridge it with an ESP32 (original ESP32 / WROOM-32 only —
   S3/C3 are BLE-only). This repo ships that bridge — [`components/untether_spp`](components/untether_spp/),
-  a hardware-verified ESPHome external component that connects (RFCOMM master) to the device's SPP
-  channel and exposes the raw byte stream as a **TCP server**, so HA (or any `nc`/socket client)
-  gets a clean pipe to a device HA's BLE-only stack can't reach. See Phase 5 for wiring it in.
+  a hardware-verified ESPHome external component that connects (RFCOMM master) to **1–4 devices'**
+  SPP channels and exposes each raw byte stream as its own **TCP server**, so HA (or any `nc`/socket
+  client) gets a clean pipe to devices HA's BLE-only stack can't reach (mixed dialects on one ESP32
+  are fine — it just pipes bytes). See Phase 5 for wiring it in.
 
 ### A third case: passive advertisement (BLE broadcast — no connection)
 
@@ -437,9 +438,10 @@ Pick the host:
 - **BLE + no proxy near the device** → an **ESPHome BLE config** on an ESP32 next to it
   (`esp32_ble_tracker` + `ble_client`, write the command char, decode notify into sensors).
 - **Classic SPP** → a **classic ESP32 (WROOM-32)** running this repo's
-  [`components/untether_spp`](components/untether_spp/) — the SPP↔TCP bridge. Flash it pointed at
-  the device's MAC + RFCOMM channel (or `channel: 0` to SDP-discover); it connects as RFCOMM master
-  and serves the raw byte stream on `tcp://<esp32>:8888`. Validate end-to-end with `nc` before
+  [`components/untether_spp`](components/untether_spp/) — the SPP↔TCP bridge (**1–4 devices per
+  node**, each a `devices:` entry with its own `tcp_port`). Flash it pointed at the device's MAC +
+  RFCOMM channel (or `channel: 0` to SDP-discover); it connects as RFCOMM master and serves the raw
+  byte stream on `tcp://<esp32>:<port>`. Validate end-to-end with `nc` before
   writing any HA code: `printf '<framed-hex>' | nc <esp32-ip> 8888`. Your HA integration then opens
   that TCP socket and speaks the device's wire protocol over it — the bridge is transparent, so the
   same `protocol.py` you'd write for BLE applies unchanged; only the transport in the coordinator

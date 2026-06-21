@@ -1,4 +1,4 @@
-# Lean ESPHome config for a Wyze outdoor plug (classic ESP32) repurposed as a
+# Lean ESPHome config for a Wyze outdoor plug (classic ESP32) repurposed as a multi-device
 # Classic-SPP <-> TCP bridge. BLE proxy removed + power-monitoring/LUX/web_server dropped to free
 # RAM for Classic BT. Keeps the relays (still a usable outlet) + Wi-Fi/API/OTA so rollback is just
 # re-flashing your old config.
@@ -13,6 +13,7 @@ esp32:
     type: esp-idf
 
 logger:
+  level: INFO
 api:
 ota:
   - platform: esphome
@@ -21,18 +22,29 @@ wifi:
   password: !secret wifi_password
   use_address: 192.168.168.63
 
-# --- the bridge ---
+# --- the bridge: up to 4 SPP devices, one TCP port each ---
 external_components:
   - source: github://dallanwagz/untether@main
     components: [untether_spp]
     refresh: 0s
 
 untether_spp:
-  mac_address: AA:BB:CC:DD:EE:FF   # <-- SET to your SPP device's BD_ADDR
-  channel: 2                       # Divoom Pixoo 16 = ch2 (TimeBox-mini = ch4); 0 = SDP-discover
-  tcp_port: 8888
-  # NewMode devices (Pixoo) need a connected-flag handshake on connect; the bridge is transparent,
-  # so the TCP client sends it first:  010400af01b40002  then e.g. brightness  0104007432aa0002
+  devices:
+    # Pixoo / MiniToo (NewMode, no byte-stuffing) want the 0xAF connected-flag handshake on connect;
+    # on_open_hex fires it automatically, so a plain `nc` client doesn't have to.
+    - mac_address: AA:BB:CC:DD:EE:FF   # <-- SET to your Pixoo's BD_ADDR
+      channel: 2                       # Pixoo = ch2 (MiniToo = ch1); 0 = SDP-discover
+      tcp_port: 8888
+      on_open_hex: "01 04 00 af 01 b4 00 02"
+    # TimeBox-mini (byte-stuffed dialect) — no connect handshake needed; bridge just pipes bytes.
+    - mac_address: 11:22:33:44:55:66   # <-- SET to your TimeBox-mini's control BD_ADDR (not its audio one)
+      channel: 4
+      tcp_port: 8889
+  # For a single device, the flat form also works:
+  #   untether_spp:
+  #     mac_address: AA:BB:CC:DD:EE:FF
+  #     channel: 2
+  #     tcp_port: 8888
 
 # --- keep the plug a usable outlet (cheap; relays restore ON) ---
 switch:
@@ -62,5 +74,3 @@ binary_sensor:
     on_press: { switch.toggle: relay2 }
 
 # NOTE: deliberately NO bluetooth_proxy / esp32_ble_tracker here — BLE is disabled to fit Classic BT.
-# Dropped vs the old template: hlw8012 power monitoring, LUX ADC, total_daily_energy, web_server,
-# captive_portal, mdns, status_led — re-add any of these later if RAM allows.
