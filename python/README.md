@@ -49,37 +49,50 @@ cid, data = manufacturer_data(adv_bytes)   # company id (little-endian) + payloa
 temp = ((int.from_bytes(data[2:5], "big")) // 1000) / 10   # e.g. Govee H5104 packed temp
 ```
 
-## Reverse-engineer an Android capture
+## Reverse-engineer an app, end to end
 
-Decode an Android `btsnoop_hci.log` and see exactly which bytes each UI action produced — the
-correlation step every other toolchain leaves to manual work:
+Drive the vendor app over ADB, mark each UI action, then see exactly which wire bytes each action
+produced — the UI-action↔byte correlation every other toolchain leaves to manual work:
 
 ```python
-from untether_bt import Capture, Mark, correlate
+from untether_bt import AndroidDriver, Capture, Recorder, correlate
 
-cap = Capture.from_btsnoop(open("btsnoop_hci.log", "rb").read())
-for a in cap.att():                       # the GATT command/status bytes (BLE)
-    print("TX" if a.sent else "RX", a.opcode_name, hex(a.att_handle or 0), a.value.hex())
+drv = AndroidDriver(serial="ABC123")     # accessibility-label driving, not pixels
+drv.enable_hci_snoop()                    # turn on Bluetooth HCI logging
+drv.launch("com.vendor.app")
 
-# attribute frames to the UI actions you marked while driving the app
-marks = [Mark(t_power_us, "power"), Mark(t_stop_us, "stop")]
-for c in correlate(cap.wire_events(), marks):
-    print(c.mark.label, "→", [e.data.hex() for e in c.events])
+rec = Recorder()
+drv.tap_and_mark("Power", rec)            # tap the labelled control + timestamp the action
+drv.tap_and_mark("Brightness Up", rec)
+
+cap = Capture.from_btsnoop(drv.pull_btsnoop())     # pull the capture (via adb bugreport)
+for c in correlate(cap.wire_events(), rec.marks):
+    print(c.mark.label, "→", [e.data.hex() for e in c.events])   # action → the frames it sent
 ```
 
-`Capture` also exposes `hci_packets`/`l2cap_payloads` (the Classic/RFCOMM hook via `include_l2cap=True`),
-and the btsnoop layer (`parse_btsnoop`/`write_btsnoop`) is a clean, signed-year-0-epoch-correct
-parser you can use standalone.
+Already have a capture? Skip the driver and decode it directly:
+
+```python
+cap = Capture.from_btsnoop(open("btsnoop_hci.log", "rb").read())
+for a in cap.att():                       # GATT command/status bytes (BLE)
+    print("TX" if a.sent else "RX", a.opcode_name, hex(a.att_handle or 0), a.value.hex())
+```
+
+`Capture` also exposes `hci_packets`/`l2cap_payloads` (the Classic/RFCOMM hook via
+`include_l2cap=True`); the btsnoop layer (`parse_btsnoop`/`write_btsnoop`) is a clean,
+signed-year-0-epoch-correct parser you can use standalone; and `AndroidDriver` runs adb through an
+injectable runner, so it's testable without a device.
 
 ## What's here and what's next
 
 **Now:** the framing/codec engine, the SPP bridge client (sync + async), the advertisement decoder,
-and the reverse-engineering pipeline (btsnoop parser + HCI/L2CAP/ATT extraction + UI-action↔wire-byte
-correlation) — the pieces that are proven on real hardware and uniquely ours (first-class Classic).
+and the full reverse-engineering pipeline — the live **ADB/UIAutomator driver** + btsnoop parser +
+HCI/L2CAP/ATT extraction + UI-action↔wire-byte correlation. Proven on real hardware and uniquely
+ours (first-class Classic).
 
-**Roadmap:** `btsnooz` (Android bug-report) decompression, the ADB/UIAutomator driver + jadx/Frida
-wrappers (the live half of the RE loop), a host-side SDP browser, a GATT client (wrapping `bleak`),
-the Assigned-Numbers resolver, and the Home-Assistant coordinator helpers.
+**Roadmap:** jadx/Frida wrappers (static decompile grep + live `BluetoothGatt`/`BluetoothSocket`
+hooks), `btsnooz` (Android bug-report) decompression, a host-side SDP browser, a GATT client
+(wrapping `bleak`), the Assigned-Numbers resolver, and the Home-Assistant coordinator helpers.
 
 ## License
 
