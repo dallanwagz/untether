@@ -70,7 +70,7 @@ from .hci import AttPdu, HciPacket, L2capPayload, att_pdus, hci_packets, l2cap_p
 from .spp import AsyncSppBridge, SppBridge
 from .connection import SppConnection
 
-__version__ = "0.7.0"
+__version__ = "0.7.1"
 
 __all__ = [
     "__version__",
