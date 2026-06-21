@@ -40,8 +40,10 @@ Assistant code it became, from a decompiled Java frame builder all the way to li
 
 For **Bluetooth Classic SPP** devices (which HA's BLE-only stack can't reach), the repo also ships
 a hardware-verified bridge: **[`components/untether_spp`](components/untether_spp/)**, an ESPHome
-external component for a classic ESP32 that RFCOMM-connects to the device and re-exposes its byte
-stream as a TCP server — `nc <esp32-ip> 8888` and you're talking to the device.
+external component for a classic ESP32 that RFCOMM-connects to **up to 4 SPP devices at once** (each
+on its own TCP port, over one shared radio) and re-exposes their byte streams as TCP servers —
+`nc <esp32-ip> 8888` and you're talking to a device. Verified driving 4 devices simultaneously
+across two wire dialects (Pixoo NewMode + TimeBox byte-stuffed).
 
 ## Install (as a Claude Code skill)
 

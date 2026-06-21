@@ -39,8 +39,8 @@ a different world:
 - **Bluetooth Classic SPP / RFCOMM** — a serial stream over an RFCOMM channel. HA *can't speak it*;
   needs a classic ESP32 (WROOM-32) bridge. This repo ships one:
   [`components/untether_spp`](../components/untether_spp/), a hardware-verified ESPHome external
-  component that RFCOMM-connects to the device and re-exposes the byte stream as a TCP server, so
-  HA / a `nc` client gets a clean pipe.
+  component that RFCOMM-connects to up to 4 devices at once and re-exposes each byte stream as its
+  own TCP server, so HA / a `nc` client gets a clean pipe (mixed dialects on one ESP32 are fine).
 - **Passive BLE advertisement (broadcast)** — the device never gets connected to at all; it
   *broadcasts* its state in the advertisement's manufacturer/service data. Simplest host case.
 
