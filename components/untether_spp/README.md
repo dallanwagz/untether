@@ -18,9 +18,8 @@ Single device (flat form):
 
 ```yaml
 external_components:
-  - source: github://dallanwagz/untether@main
+  - source: github://dallanwagz/untether@untether_spp-v1.0.0   # pin to a release; @main tracks unstable
     components: [untether_spp]
-    refresh: 0s
 
 untether_spp:
   mac_address: AA:BB:CC:DD:EE:FF   # the SPP device's BD_ADDR
