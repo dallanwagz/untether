@@ -31,9 +31,13 @@ from .apk import (
 from .frida import FridaSession, hook_script_path, parse_hook_message
 from .gatt import GattClient, normalize_uuid
 from .numbers import (
+    ad_type_name,
+    appearance_name,
     company_name,
     describe_uuid,
     gatt_name,
+    parse_class_of_device,
+    protocol_name,
     sdp_service_name,
     uuid16_to_128,
     uuid128_to_16,
@@ -70,7 +74,7 @@ from .hci import AttPdu, HciPacket, L2capPayload, att_pdus, hci_packets, l2cap_p
 from .spp import AsyncSppBridge, SppBridge
 from .connection import SppConnection
 
-__version__ = "0.7.2"
+__version__ = "0.8.0"
 
 __all__ = [
     "__version__",
@@ -139,6 +143,10 @@ __all__ = [
     "company_name",
     "gatt_name",
     "sdp_service_name",
+    "protocol_name",
+    "ad_type_name",
+    "appearance_name",
+    "parse_class_of_device",
     "describe_uuid",
     # sdp
     "parse_data_element",

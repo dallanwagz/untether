@@ -38,6 +38,11 @@ See **[SKILL.md](SKILL.md)** for the full methodology, and **[examples/](example
 artifacts from a worked project (a massage chair) — each shows an RE finding and the exact Home
 Assistant code it became, from a decompiled Java frame builder all the way to live sensors.
 
+For Bluetooth **Classic / RFCOMM / SPP** specifically — the transport the BLE-only toolchain can't
+reach — read **[docs/CLASSIC-BT-RE-HANDBOOK.md](docs/CLASSIC-BT-RE-HANDBOOK.md)**: a spec-grounded
+map of the stack (L2CAP PSM, RFCOMM/TS 07.10 framing and DLCI math, SDP channel discovery, Class of
+Device), each layer tied to the `untether-bt` primitive that decodes it.
+
 For **Bluetooth Classic SPP** devices (which HA's BLE-only stack can't reach), the repo also ships
 a hardware-verified bridge: **[`components/untether_spp`](components/untether_spp/)**, an ESPHome
 external component for a classic ESP32 that RFCOMM-connects to **up to 4 SPP devices at once** (each
@@ -50,7 +55,8 @@ the framing/codec engine, the SPP-bridge client (sync + async) plus a self-heali
 that the example HA integration is built on, a BLE advertisement decoder, and the full
 reverse-engineering pipeline — live **ADB/UIAutomator driver** → btsnoop parse → HCI/ATT
 extraction → **UI-action↔wire-byte correlation**, **static (jadx) + dynamic (Frida) analysis**, and
-the protocol primitives (SDP record parser, GATT client over bleak, Assigned-Numbers resolver),
+the protocol primitives (SDP record parser, GATT client over bleak, a full **Assigned-Numbers**
+resolver — every company ID, UUID, SDP service class, protocol ID, AD type, and Class of Device),
 plus Android **btsnooz** decompression and live SDP browsing on BlueZ — first-class Bluetooth
 **Classic** support the BLE-only ecosystem (bleak/HA/ESPHome) lacks.
 

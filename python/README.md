@@ -145,6 +145,20 @@ async with GattClient("AA:BB:CC:DD:EE:FF") as g:   # wraps bleak; pip install "u
     await g.write(0xFFE1, b"\x01")
 ```
 
+The **Assigned-Numbers resolver** carries the full SIG registries, not a handful — every company ID, GATT service/characteristic/descriptor, SDP service class, protocol identifier, AD/EIR type, GAP appearance, and Class of Device (regenerate with `tools/gen_assigned_numbers.py`):
+
+```python
+from untether_bt import (company_name, protocol_name, sdp_service_name,
+                         ad_type_name, appearance_name, parse_class_of_device)
+
+company_name(0x004C)             # 'Apple, Inc.'
+protocol_name(0x0003)            # 'RFCOMM'   (SDP protocol identifier namespace)
+sdp_service_name(0x110A)         # 'Audio Source'
+ad_type_name(0xFF)               # 'Manufacturer Specific Data'
+appearance_name(0x0341)          # 'Heart Rate Sensor: Heart Rate Belt'
+parse_class_of_device(0x20020C)  # {'major_device_class': 'Phone …', 'minor_device_class': 'Smartphone', …}
+```
+
 ## What's here and what's next
 
 **Now:** the framing/codec engine; the SPP bridge client (sync + async) plus the self-healing
