@@ -49,9 +49,10 @@ And the host-side toolkit is a pip-installable Python library, **[`python/`](pyt
 the framing/codec engine, the SPP-bridge client (sync + async), a BLE advertisement decoder, and the
 full reverse-engineering pipeline — live **ADB/UIAutomator driver** → btsnoop parse → HCI/ATT
 extraction → **UI-action↔wire-byte correlation**, **static (jadx) + dynamic (Frida) analysis**, and
-the protocol primitives (SDP record parser, GATT client over bleak, Assigned-Numbers resolver) —
-first-class Bluetooth **Classic** support the BLE-only ecosystem (bleak/HA/ESPHome) lacks. The
-HA-coordinator helper + PyPI publish are next.
+the protocol primitives (SDP record parser, GATT client over bleak, Assigned-Numbers resolver),
+plus Android **btsnooz** decompression and live SDP browsing on BlueZ — first-class Bluetooth
+**Classic** support the BLE-only ecosystem (bleak/HA/ESPHome) lacks. The HA-coordinator helper
+(dogfooding) + PyPI publish are next.
 
 ## Install (as a Claude Code skill)
 

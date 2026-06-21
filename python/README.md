@@ -106,10 +106,11 @@ FridaSession("com.vendor.app").run(events.append, duration=20)
 ## Protocol primitives
 
 ```python
-from untether_bt import GattClient, describe_uuid, parse_ssa_response, spp_channel
+from untether_bt import Capture, GattClient, describe_uuid, parse_ssa_response, spp_channel
 
 describe_uuid(0x180F)                      # '0x180F (Battery Service)'
 spp_channel(parse_ssa_response(sdp_bytes)) # the dynamic RFCOMM channel — browse, don't hardcode
+spp_channel(Capture.from_btsnoop(cap).sdp_records())  # …or recover it straight from a capture
 
 async with GattClient("AA:BB:CC:DD:EE:FF") as g:   # wraps bleak; pip install "untether-bt[ble]"
     print(g.services())
@@ -120,13 +121,14 @@ async with GattClient("AA:BB:CC:DD:EE:FF") as g:   # wraps bleak; pip install "u
 ## What's here and what's next
 
 **Now:** the framing/codec engine; the SPP bridge client (sync + async); the advertisement decoder;
-the full RE capture pipeline (live **ADB/UIAutomator driver** → btsnoop → HCI/L2CAP/ATT extraction →
-UI-action↔wire-byte correlation); **static + dynamic analysis** (jadx mapping + Frida write hooks);
-and the protocol primitives (**SDP** record parser, **GATT** client over bleak, **Assigned-Numbers**
-resolver). Proven on real hardware and uniquely ours (first-class Classic throughout).
+the full RE capture pipeline (live **ADB/UIAutomator driver** → btsnoop **+ btsnooz** → HCI/L2CAP/ATT
+extraction → UI-action↔wire-byte correlation); **static + dynamic analysis** (jadx mapping + Frida
+write hooks); the protocol primitives (**SDP** record parser — incl. recovering the RFCOMM channel
+from a capture or live via BlueZ — **GATT** client over bleak, **Assigned-Numbers** resolver). Proven
+on real hardware and uniquely ours (first-class Classic throughout).
 
-**Roadmap:** `btsnooz` (Android bug-report) decompression; live SDP browsing on Linux/BlueZ; the
-Home-Assistant coordinator helper (`untether-bt[ha]`); and publishing to PyPI.
+**Roadmap:** the Home-Assistant coordinator helper (`untether-bt[ha]`) + refactoring the example
+integrations to consume the library; publishing to PyPI; growing the bundled Assigned-Numbers tables.
 
 ## License
 

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "untether-bt"
-version = "0.5.0"
+version = "0.6.0"
 description = "A Bluetooth Swiss-army-knife for reverse engineering, troubleshooting, and engineering — with first-class Bluetooth Classic (RFCOMM/SPP) support the BLE-only ecosystem lacks."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -28,6 +28,7 @@ dependencies = []
 [project.optional-dependencies]
 ble = ["bleak>=0.22"]          # GATT/LE transport (we wrap bleak, never rebuild it)
 frida = ["frida>=16"]          # dynamic app instrumentation (live BLE/RFCOMM write hooks)
+bluez = ["pybluez2>=0.46"]     # live Classic SDP browsing on Linux/BlueZ
 dev = ["pytest>=8", "pytest-asyncio>=0.23", "ruff>=0.5"]
 
 [project.urls]

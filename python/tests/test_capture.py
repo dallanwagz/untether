@@ -94,6 +94,39 @@ def test_correlation_window_excludes_late_events():
     assert corr[0].events == []  # event is 5s after the mark, beyond the 2s window
 
 
+def test_sdp_records_from_capture():
+    from untether_bt import spp_channel
+
+    # build a minimal SDP SSA response advertising SPP on RFCOMM channel 5
+    def u8(v):
+        return bytes([0x08, v])
+
+    def u16(v):
+        return bytes([0x09]) + v.to_bytes(2, "big")
+
+    def uuid16(v):
+        return bytes([0x19]) + v.to_bytes(2, "big")
+
+    def seq(*e):
+        body = b"".join(e)
+        return bytes([0x35, len(body)]) + body
+    record = seq(
+        u16(0x0001), seq(uuid16(0x1101)),
+        u16(0x0004), seq(seq(uuid16(0x0100)), seq(uuid16(0x0003), u8(5))),
+    )
+    de = seq(record)
+    pdu = bytes([0x07, 0x00, 0x01]) + (len(de) + 3).to_bytes(2, "big") \
+        + len(de).to_bytes(2, "big") + de + b"\x00"
+    # wrap as an L2CAP payload (SDP CID) inside an ACL HCI record
+    l2cap = len(pdu).to_bytes(2, "little") + (0x0040).to_bytes(2, "little") + pdu
+    acl = (0x40).to_bytes(2, "little") + len(l2cap).to_bytes(2, "little") + l2cap
+    rec = _record(bytes([H4_ACL]) + acl, 1, sent=False)
+
+    cap = Capture.from_btsnoop(write_btsnoop(DLT_HCI_UART_H4, [rec]))
+    records = cap.sdp_records()
+    assert spp_channel(records) == 5
+
+
 def test_l2cap_non_att_payload_extracted():
     # a Classic-style payload on a dynamic CID (the RFCOMM hook) shows up in include_l2cap view
     handle, cid = 0x40, 0x0040
