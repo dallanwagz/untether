@@ -73,8 +73,16 @@ from .framing import (
 from .hci import AttPdu, HciPacket, L2capPayload, att_pdus, hci_packets, l2cap_payloads
 from .spp import AsyncSppBridge, SppBridge
 from .connection import SppConnection
+from .rfcomm import (
+    RFCOMM_PSM,
+    MuxCommand,
+    RfcommFrame,
+    check_fcs,
+    iter_rfcomm,
+    parse_rfcomm,
+)
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 __all__ = [
     "__version__",
@@ -89,6 +97,12 @@ __all__ = [
     "SppBridge",
     "AsyncSppBridge",
     "SppConnection",
+    "RfcommFrame",
+    "MuxCommand",
+    "parse_rfcomm",
+    "iter_rfcomm",
+    "check_fcs",
+    "RFCOMM_PSM",
     # advertising
     "ADStructure",
     "parse_ad",

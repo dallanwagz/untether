@@ -58,6 +58,17 @@ class Capture:
     def att(self) -> list[AttPdu]:
         return att_pdus(self.packets)
 
+    def rfcomm_frames(self, *, require_valid_fcs: bool = True) -> list:
+        """Decode RFCOMM frames from the capture's L2CAP payloads (Classic SPP).
+
+        A capture doesn't label which dynamic CID is RFCOMM, so this tries every non-ATT L2CAP
+        payload and keeps the ones with a valid FCS (a strong signal the CID carried RFCOMM).
+        """
+        from .rfcomm import iter_rfcomm
+
+        candidates = [lp for lp in l2cap_payloads(self.packets) if lp.cid != 0x0004]
+        return list(iter_rfcomm(candidates, require_valid_fcs=require_valid_fcs))
+
     def sdp_records(self) -> list[dict]:
         """Service records from any SDP ServiceSearchAttribute responses in the capture.
 

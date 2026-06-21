@@ -164,10 +164,11 @@ parse_class_of_device(0x20020C)  # {'major_device_class': 'Phone …', 'minor_de
 **Now:** the framing/codec engine; the SPP bridge client (sync + async) plus the self-healing
 `SppConnection` (dogfooded by the Pixoo HA integration); the advertisement decoder;
 the full RE capture pipeline (live **ADB/UIAutomator driver** → btsnoop **+ btsnooz** → HCI/L2CAP/ATT
-extraction → UI-action↔wire-byte correlation); **static + dynamic analysis** (jadx mapping + Frida
-write hooks); the protocol primitives (**SDP** record parser — incl. recovering the RFCOMM channel
-from a capture or live via BlueZ — **GATT** client over bleak, **Assigned-Numbers** resolver). Proven
-on real hardware and uniquely ours (first-class Classic throughout).
+extraction → UI-action↔wire-byte correlation); a standalone **RFCOMM/TS 07.10 frame decoder**
+(DLCI/server-channel, frame types, credit flow, MUX commands, kernel-exact FCS); **static + dynamic
+analysis** (jadx mapping + Frida write hooks); the protocol primitives (**SDP** record parser — incl.
+recovering the RFCOMM channel from a capture or live via BlueZ — **GATT** client over bleak, full
+**Assigned-Numbers** resolver). Proven on real hardware and uniquely ours (first-class Classic throughout).
 
 **Roadmap:** growing the bundled Assigned-Numbers tables; publishing the spec map as a Classic-BT RE
 handbook; contributing parsers upstream.

@@ -142,10 +142,11 @@ the wire per frame:
 ### 4.3 Frame types (control field)
 
 RFCOMM uses only the TS 07.10 frames below (UI and error-recovery frames are *not* supported). The
-control-field octet values, with the P/F bit set as transmitted:
+control-field octet is the base type below **OR-ed with the P/F bit `0x10`** when set — so a SABM
+command with P/F goes out as `0x3F`. Identify a frame by masking: `type = control & 0xEF`.
 
-| Frame | Role | Control (P/F=1) |
-|-------|------|-----------------|
+| Frame | Role | Base control (P/F masked) |
+|-------|------|---------------------------|
 | **SABM** | command — open a DLC | `0x2F` |
 | **UA**   | response — DLC accepted | `0x63` |
 | **DM**   | response — DLC refused/closed | `0x0F` |
@@ -187,10 +188,18 @@ There is **at most one RFCOMM session per device pair** (keyed by the two BD_ADD
 the existing session. This is the protocol reason a Classic device that accepts the app *and* your
 bridge at once misbehaves: contention over the single session/bond, not a flaky radio.
 
-> `untether-bt` does not yet ship a standalone RFCOMM frame decoder — the bytes arrive already
-> de-multiplexed through the `untether_spp` bridge (it terminates RFCOMM on the ESP32 and gives you
-> the clean serial stream). The map above is for reading raw RFCOMM in a btsnoop capture, and is on
-> the roadmap as a decoder module.
+```python
+from untether_bt import parse_rfcomm, iter_rfcomm, Capture
+f = parse_rfcomm(bytes.fromhex("033f011c"))     # the canonical SABM on DLCI 0
+f.frame_type, f.dlci, f.fcs_ok                   # ('SABM', 0, True)
+for fr in Capture.from_btsnoop(cap).rfcomm_frames():   # decode RFCOMM straight from a capture
+    print(fr.frame_type, fr.server_channel, fr.information.hex())
+```
+
+In live use the bytes usually arrive already de-multiplexed through the `untether_spp` bridge (it
+terminates RFCOMM on the ESP32 and gives you the clean serial stream), so `rfcomm.py` is what you
+reach for when reading **raw** RFCOMM in a btsnoop capture, building a bridge, or debugging a DLC
+that won't open. The FCS table and check match the canonical TS 07.10 / Linux-kernel implementation.
 
 ---
 
