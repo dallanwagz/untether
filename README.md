@@ -47,9 +47,10 @@ across two wire dialects (Pixoo NewMode + TimeBox byte-stuffed).
 
 And the host-side toolkit is a pip-installable Python library, **[`python/`](python/)** (`untether-bt`):
 the framing/codec engine, the SPP-bridge client (sync + async), a BLE advertisement decoder, and the
-full reverse-engineering pipeline — the live **ADB/UIAutomator driver** → btsnoop parse → HCI/ATT
-extraction → **UI-action↔wire-byte correlation** — first-class Bluetooth **Classic** support the
-BLE-only ecosystem (bleak/HA/ESPHome) lacks. jadx/Frida wrappers + SDP/GATT primitives are next.
+full reverse-engineering pipeline — live **ADB/UIAutomator driver** → btsnoop parse → HCI/ATT
+extraction → **UI-action↔wire-byte correlation**, plus **static (jadx) + dynamic (Frida) analysis**
+— first-class Bluetooth **Classic** support the BLE-only ecosystem (bleak/HA/ESPHome) lacks.
+SDP/GATT primitives + the HA-coordinator helper are next.
 
 ## Install (as a Claude Code skill)
 

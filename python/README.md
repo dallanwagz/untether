@@ -83,15 +83,34 @@ for a in cap.att():                       # GATT command/status bytes (BLE)
 signed-year-0-epoch-correct parser you can use standalone; and `AndroidDriver` runs adb through an
 injectable runner, so it's testable without a device.
 
+## Static & dynamic analysis (jadx / Frida)
+
+Decompile the app and map its Bluetooth surface — *is it BLE or Classic SPP?*, which UUIDs, where
+are the write call sites:
+
+```python
+from untether_bt import analyze_apk
+a = analyze_apk("vendor.apk")          # runs jadx, walks the tree
+print(a.summary())                      # transport: classic-spp | ble | both ; UUIDs ; call sites
+```
+
+Or hook the running app with Frida to dump the **outgoing command bytes** live (BLE *and* Classic,
+at the API layer — works even on an encrypted link), as the same `WireEvent`s `correlate()` eats:
+
+```python
+from untether_bt import FridaSession           # pip install "untether-bt[frida]"
+events = []
+FridaSession("com.vendor.app").run(events.append, duration=20)
+```
+
 ## What's here and what's next
 
 **Now:** the framing/codec engine, the SPP bridge client (sync + async), the advertisement decoder,
-and the full reverse-engineering pipeline — the live **ADB/UIAutomator driver** + btsnoop parser +
-HCI/L2CAP/ATT extraction + UI-action↔wire-byte correlation. Proven on real hardware and uniquely
-ours (first-class Classic).
+the full RE capture pipeline (live **ADB/UIAutomator driver** → btsnoop → HCI/L2CAP/ATT extraction →
+UI-action↔wire-byte correlation), and **static + dynamic analysis** (jadx decompile mapping + Frida
+write hooks). Proven on real hardware and uniquely ours (first-class Classic throughout).
 
-**Roadmap:** jadx/Frida wrappers (static decompile grep + live `BluetoothGatt`/`BluetoothSocket`
-hooks), `btsnooz` (Android bug-report) decompression, a host-side SDP browser, a GATT client
+**Roadmap:** `btsnooz` (Android bug-report) decompression, a host-side SDP browser, a GATT client
 (wrapping `bleak`), the Assigned-Numbers resolver, and the Home-Assistant coordinator helpers.
 
 ## License

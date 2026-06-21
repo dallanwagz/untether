@@ -20,6 +20,15 @@ from .advertising import (
     service_uuids16,
 )
 from .android import AdbError, AdbRunner, AndroidDriver, extract_btsnoop_from_zip
+from .apk import (
+    ApkAnalysis,
+    Finding,
+    analyze_apk,
+    analyze_tree,
+    decompile_apk,
+    pull_apk,
+)
+from .frida import FridaSession, hook_script_path, parse_hook_message
 from .uiauto import UiNode, find_node, parse_ui_dump
 from .btsnoop import Btsnoop, BtsnoopRecord, make_record, parse_btsnoop, write_btsnoop
 from .capture import Capture, Correlation, Mark, Recorder, WireEvent, correlate
@@ -34,7 +43,7 @@ from .framing import (
 from .hci import AttPdu, HciPacket, L2capPayload, att_pdus, hci_packets, l2cap_payloads
 from .spp import AsyncSppBridge, SppBridge
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "__version__",
@@ -82,4 +91,15 @@ __all__ = [
     "UiNode",
     "parse_ui_dump",
     "find_node",
+    # static analysis (jadx)
+    "ApkAnalysis",
+    "Finding",
+    "analyze_tree",
+    "analyze_apk",
+    "decompile_apk",
+    "pull_apk",
+    # dynamic instrumentation (frida)
+    "FridaSession",
+    "parse_hook_message",
+    "hook_script_path",
 ]
