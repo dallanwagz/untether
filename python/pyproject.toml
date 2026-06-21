@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "untether-bt"
+version = "0.1.0"
+description = "A Bluetooth Swiss-army-knife for reverse engineering, troubleshooting, and engineering — with first-class Bluetooth Classic (RFCOMM/SPP) support the BLE-only ecosystem lacks."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "dallanwagz" }]
+keywords = [
+    "bluetooth", "ble", "bluetooth-classic", "rfcomm", "spp",
+    "reverse-engineering", "home-assistant", "esp32", "advertisement",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Communications",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: System :: Hardware",
+]
+dependencies = []
+
+[project.optional-dependencies]
+ble = ["bleak>=0.22"]          # GATT/LE transport (we wrap bleak, never rebuild it)
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "ruff>=0.5"]
+
+[project.urls]
+Homepage = "https://github.com/dallanwagz/untether"
+Repository = "https://github.com/dallanwagz/untether"
+Issues = "https://github.com/dallanwagz/untether/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/untether_bt"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src"]

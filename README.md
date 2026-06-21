@@ -45,6 +45,11 @@ on its own TCP port, over one shared radio) and re-exposes their byte streams as
 `nc <esp32-ip> 8888` and you're talking to a device. Verified driving 4 devices simultaneously
 across two wire dialects (Pixoo NewMode + TimeBox byte-stuffed).
 
+And the host-side toolkit is a pip-installable Python library, **[`python/`](python/)** (`untether-bt`):
+the framing/codec engine, the SPP-bridge client (sync + async), and a BLE advertisement decoder —
+first-class Bluetooth **Classic** support the BLE-only ecosystem (bleak/HA/ESPHome) lacks. More
+primitives (btsnoop, SDP, GATT-over-bleak, the app→HA RE pipeline) on the roadmap.
+
 ## Install (as a Claude Code skill)
 
 ```sh
